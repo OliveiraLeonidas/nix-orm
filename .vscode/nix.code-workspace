@@ -1,0 +1,53 @@
+{
+  "folders": [
+    {
+      "name": "NixORM",
+      "path": "../"
+    }
+  ],
+  "settings": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.wordWrap": "on",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "workbench.statusBar.visible": true,
+    "workbench.tree.indent": 12,
+    "workbench.editor.labelFormat": "short",
+    "editor.fontLigatures": true,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
+    "editor.quickSuggestions": {
+      "other": "on",
+      "comments": "on",
+      "strings": "on"
+    },
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.lintOnSave": true,
+    "python.formatting.provider": "black",
+    "python.formatting.blackArgs": [
+      "--line-length",
+      "88"
+    ],
+    "python.languageServer": "Pylance",
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.useLibraryCodeForTypes": true,
+    "[python]": {
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "always"
+      },
+      "editor.formatOnSave": true
+    },
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.debugpy"
+    ]
+  }
+}
