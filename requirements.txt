@@ -1,1 +1,14 @@
 ply==3.11
+greenlet==3.2.1
+ply==3.11
+SQLAlchemy==2.0.40
+typing_extensions==4.13.2
+asn1crypto==1.5.1
+greenlet==3.2.1
+pg8000==1.31.2
+ply==3.11
+python-dateutil==2.9.0.post0
+scramp==1.4.5
+six==1.17.0
+SQLAlchemy==2.0.40
+typing_extensions==4.13.2
