@@ -1,6 +1,6 @@
 # Nix ORM
 
-caso adicione mais uma biblioteca rode novamente
+caso adicione mais uma biblioteca rode novamente para adicionar ao requirements.txt
 
 ```shell
     $ pip freeze >> requirements.txt
