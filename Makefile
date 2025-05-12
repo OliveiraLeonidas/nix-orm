@@ -1,25 +1,31 @@
 .PHONY: setup run test clean lint format
 
+SHELL := /bin/bash
+
 # Variáveis
 PYTHON = python3
 PIP = pip
 MODULE = main.py
 CACHE_DIR= .cache
 TEST_DIR = tests
+VENV = .venv
 
 export PYTHONPYCACHEPREFIX = $(CACHE_DIR)/pycache
 export PIP_CACHE_DIR = $(CACHE_DIR)/pip
 
 # Configuração do ambiente
 setup:
-	$(PIP) install -r requirements.txt
-	# docker compose up
+	$(PIP) install -r requirements.txt && \
 	echo "Dependencias instaladas!"
+
 
 # Execução do programa
 run:
 	$(PYTHON) $(MODULE)
 	echo "Execução finalizada"
+
+ptest:
+	$(PYTHON) classes.py 
 
 # Execução dos testes
 test:

@@ -1,5 +1,9 @@
 # Nix ORM
 
+<p dir="center">
+    <img dir="center" src="./public/nyx-orm.png" width="300px" height="300px" style="display: block; margin: 0 auto; border-radius: 8px;"></img>
+</p>
+
 ## Extensões
 
 - sql viewer
