@@ -1,10 +1,13 @@
-from ply import lex, yacc
+import ply.lex as lex
+import sys
 
 class NixLexer:
-    tokens: str = (
+    global lex
+
+    tokens = (
         "ID",
         "STRING",
-        "INTEGER",
+        "NUMBER",
         "COMMA",
         "DOT",
         "LPAREN",
@@ -17,14 +20,14 @@ class NixLexer:
         "NE" # diferente
     )
 
-    reservedWords: str = {
+    reservedWords = {
         "getAll": "GETALL",
         "get": "GET",
         "where": "WHERE",
         "join": "JOIN",
         "leftJoin": "LEFTJOIN",
         "rightJoin": "RIGHTJOIN",
-        "order": "ORDER BY",
+        "orderby": "ORDERBY",
         "limit": "LIMIT",
         "insert": "INSERT",
         "update": "UPDATE",
@@ -80,11 +83,15 @@ class NixLexer:
         print(f'Ilegal character {t.value[0]} in line {t.lexer.lineno}')
         t.lexer.skip(1)
     
-    def __init__(self):
-        self.lexer = lex.lexer(module=self)
+    def __init__(self, data):
+        self.lexer = lex.lex(module=self)
+        self.lexer.input(data)
 
 
     t_ignore = ' \t'
+
+    def nextToken(self):
+        return self.lexer.token()
 
     def tokenize(self, data):
         self.lexer.input(data)
@@ -95,3 +102,18 @@ class NixLexer:
                 break
             tokens.append(tk)
         return tokens
+
+
+# Testando lexer
+
+if __name__ == "__main__":
+    data = "getAll('users')"
+    lexer = NixLexer(data)
+    print(len(data))
+    # print(data[0:6])
+    #tokenList = lexer.tokenize(data=data)
+    print(lexer.nextToken())
+    print(lexer.nextToken())
+    print(lexer.nextToken())
+    print(lexer.nextToken())
+    
