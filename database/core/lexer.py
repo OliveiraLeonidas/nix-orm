@@ -107,13 +107,12 @@ class NixLexer:
 # Testando lexer
 
 if __name__ == "__main__":
-    data = "getAll('users')"
+    data = "get('users', where('id = 10'))"
     lexer = NixLexer(data)
     print(len(data))
     # print(data[0:6])
-    #tokenList = lexer.tokenize(data=data)
-    print(lexer.nextToken())
-    print(lexer.nextToken())
-    print(lexer.nextToken())
-    print(lexer.nextToken())
+    tokenList = lexer.tokenize(data=data)
+    for token in tokenList:
+        print(token)
+
     

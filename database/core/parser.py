@@ -24,15 +24,15 @@ class SelectNode(Node):
         self.limit = limit
     
     def __repr__(self):
-        return f'<Selected Node: table_name={self.table} where={self.where} limit={self.limit}>'
-
+        return f'<Selected Node: table_name={self.table} or columns name {self.columns} where={self.where} limit={self.limit}>'
+    # self.simbols[table] = node.where
 
 class NixParser:
 
     def __init__(self):
         self.lexer = None
         self.lookAhead = None
-        self.simbols = {}
+        self.simbols = []
 
     
     def parse(self, data):
@@ -51,7 +51,7 @@ class NixParser:
             self.error(f'Expect {expeted_type}, and found type {self.lookAhead.type}')
     
     def error(self, message):
-        print('f[Sintax error] {message}')
+        print(f'[Sintax error] {message}')
         sys.exit(1)
     
 
@@ -59,7 +59,7 @@ class NixParser:
         if self.lookAhead.type == 'GETALL':
             return self.parse_getAll()
         elif self.lookAhead.type == 'GET':
-            return self.parse_getAll()
+            return self.get()
         else:
             raise SyntaxError("Unknow expression")
     
@@ -90,8 +90,8 @@ class NixParser:
         return self.__parse_chain(node)
 
     #Utilizando encadeamento
-    # TODO: teria que gerar uma nova string, uma solução melhor seria dentro dos
-    # metodos get e getAll()
+    # TODO: mover a logica de where que está no método get() para o parse_chain e verificar se não houve quebra de lógica
+    # em outras partes do código
     def __parse_chain(self, node):
         while self.lookAhead and self.lookAhead.type == "DOT":
             self.match("DOT")
@@ -111,17 +111,74 @@ class NixParser:
                 raise SyntaxError("Método encadeado não reconhecido")
         return node
 
+    
     def _parse_condition(self):
         # ID EQUALS NUMBER => id = 1
+        # where('COLUMN', 'OPERATOR', ' VALUE')
         left = self.match("ID")
         op = self.match("EQUALS")
         right = self.match("NUMBER")
         return f"{left} {op} {right}"
+    
+    def get(self):
+        # get('users', where("id = 10"))
+        # GET LPAREN STRING COMMA STRING COMMA STRING WHERE LPAREN PARSE_CONDITION RPAREN RPAREN
+        print('entrou')
+        self.match("GET")
+        self.match("LPAREN")
+        table = self.match("STRING").value # used as string (table name)
+        columns = []
+
+        if self.lookAhead.type == "COMMA":
+            self.match("COMMA")
+
+            if self.lookAhead.type == "STRING":
+                columns.append(self.match("STRING").value)
+
+                while self.lookAhead.type == "COMMA":
+                    self.match("COMMA")
+
+                    if self.lookAhead.type == "WHERE":
+                        break
+
+                    if self.lookAhead.type == "STRING":
+                        columns.append(self.match("STRING").value)
+                    
+                    else: 
+                        return f'Expected STRING or WHERE token, but got {self.lookAhead.type}'
+        
+        # node = SelectNode(table=table, columns= columns if columns else ['*'])
+
+        if  self.lookAhead.type == "WHERE":
+                self.match("WHERE")
+                self.match("LPAREN")
+                condition = self._parse_condition()
+                self.match("RPAREN")
+                node = SelectNode(table=table, columns = columns if columns else ['*'])
+                node.set_where(condition=condition)
+                self.match("RPAREN")
+                self.simbols.append(node)
+                return node
+                    
+        
+        self.match("RPAREN")
+        return self.__parse_chain(node)
+        
+        
 
 # Testando Parser
 
 data = "getAll('users').where(id = 1)"
+# where('id', '=', '10')
+newparseData = "get('users', 'id', 'name', 'age', where(id = 10))"
 parser = NixParser()
 
-result = parser.parse(data)
-print(result.__repr__())
+result = parser.parse(newparseData)
+print(parser.simbols)
+
+def get(table, where=None):
+    if where == None:
+        return f'get{table}'
+    
+    return f'get({table}, {where})'
+        
