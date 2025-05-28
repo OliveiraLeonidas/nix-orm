@@ -1,7 +1,8 @@
 from lexer import NixLexer
-import ply.yacc as yacc
 import sys
 
+# Criando parser com base nos conteúdos de aula, pois fornece um melhor controle sobre o parseamento das classes
+# Como ele trabalha a apartir dos tokens definidos a MV vai gerar um sql equivalente para devolver a api que está sendo utilizada.
 
 class Node:
     def toDict(self):
@@ -25,7 +26,6 @@ class SelectNode(Node):
     
     def __repr__(self):
         return f'<Selected Node: table_name={self.table} or columns name {self.columns} where={self.where} limit={self.limit}>'
-    # self.simbols[table] = node.where
 
 class NixParser:
 
@@ -114,12 +114,27 @@ class NixParser:
     
     def _parse_condition(self):
         # ID EQUALS NUMBER => id = 1
-        # where('COLUMN', 'OPERATOR', ' VALUE')
-        left = self.match("ID")
-        op = self.match("EQUALS")
-        right = self.match("NUMBER")
-        return f"{left} {op} {right}"
+        # string  ,   string  , string
+        # 'COLUMN', 'OPERATOR', ' VALUE'
+        
+        left = self.match("STRING").value # COLUNA
+        self.match("COMMA")
+        op = self.match("STRING").value # OPERADOR
+        self.match("COMMA")
+        right = self.match("STRING").value # VALOR
+        return {"ID": left, "EQUALS": op, "NUMBER": right}
     
+
+    def getAll(self):
+        self.match("GETALL")
+        self.match("LPAREN")
+        table = self.match("STRING").value
+        self.match("RPAREN")
+        node = SelectNode(table=table, columns=['*'])
+        print(f'GetAll')
+        return node
+    
+    """ GET WITH WHERE CLAUSE => TOKENIZE EXPRESSION: """
     def get(self):
         # get('users', where("id = 10"))
         # GET LPAREN STRING COMMA STRING COMMA STRING WHERE LPAREN PARSE_CONDITION RPAREN RPAREN
@@ -155,6 +170,7 @@ class NixParser:
                 condition = self._parse_condition()
                 self.match("RPAREN")
                 node = SelectNode(table=table, columns = columns if columns else ['*'])
+                print(condition)
                 node.set_where(condition=condition)
                 self.match("RPAREN")
                 self.simbols.append(node)
@@ -162,7 +178,7 @@ class NixParser:
                     
         
         self.match("RPAREN")
-        return self.__parse_chain(node)
+        return node
         
         
 
@@ -170,7 +186,7 @@ class NixParser:
 
 data = "getAll('users').where(id = 1)"
 # where('id', '=', '10')
-newparseData = "get('users', 'id', 'name', 'age', where(id = 10))"
+newparseData = "get('users', 'id', 'name', 'age', where('id', '=', '10'))"
 parser = NixParser()
 
 result = parser.parse(newparseData)
