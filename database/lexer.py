@@ -1,4 +1,4 @@
-import ply.lex as lex
+from ply import lex
 import sys
 
 class NixLexer:
@@ -13,11 +13,12 @@ class NixLexer:
         "LPAREN",
         "RPAREN",
         "EQUALS",
-        "GT", # maior que
+        "GT",
         "LT", # menor que
         "GTE",# maior ou igual
         "LTE",# menor ou igual
-        "NE" # diferente
+        "NE", # diferente
+        "SEMICOLON"
     )
 
     reservedWords = {
@@ -29,9 +30,37 @@ class NixLexer:
         "rightJoin": "RIGHTJOIN",
         "orderby": "ORDERBY",
         "limit": "LIMIT",
+
         "insert": "INSERT",
         "update": "UPDATE",
         "delete": "DELETE",
+        "into": "INTO",
+        "values": "VALUES",
+        "set": "SET",
+        "from": "FROM",
+
+        "createDatabase": "CREATEDATABASE",
+        "createTable": "CREATETABLE",
+        "dropDatabase": "DROPDATABASE",
+        "dropTable": "DROPTABLE",
+        "column": "COLUMN",
+        "primaryKey": "PRIMARYKEY",
+        "foreignKey": "FOREIGNKEY",
+        "references": "REFERENCES",
+        "autoIncrement": "AUTOINCREMENT",
+     
+        "varchar": "VARCHAR",
+        "int": "INT",
+        "text": "TEXT",
+        "datetime": "DATETIME",
+        "boolean": "BOOLEAN",
+        "float": "FLOAT",
+        "decimal": "DECIMAL",
+        
+        "notNull": "NOTNULL",
+        "unique": "UNIQUE",
+        "default": "DEFAULT",
+        
         "as": "AS",
         "true": "TRUE",
         "false": "FALSE",
@@ -49,6 +78,7 @@ class NixLexer:
     t_GTE =    r'\>='
     t_LTE =    r'\<='
     t_NE =     r'\!='
+    t_SEMICOLON = r'\;'
 
     def t_STRING(self, t):
         r'\"([^\\\n]|(\\.))*?\"|\'([^\\\n]|(\\.))*?\''
@@ -107,12 +137,17 @@ class NixLexer:
 # Testando lexer
 
 if __name__ == "__main__":
-    data = "get('users', where('id = 10'))"
-    lexer = NixLexer(data)
-    print(len(data))
-    # print(data[0:6])
-    tokenList = lexer.tokenize(data=data)
-    for token in tokenList:
-        print(token)
-
+    test_queries = [
+        "createDatabase('mydb')",
+        "createTable('users').column('id', 'int', primaryKey).column('name', 'varchar', '255')",
+        "insert('users').values('name', 'João', 'age', '25')",
+        "update('users').set('name', 'Maria').where('id', '=', '1')",
+        "delete('users').where('id', '=', '1')"
+    ]
     
+    for query in test_queries:
+        print(f"\nTesting: {query}")
+        lexer = NixLexer(query)
+        tokens = lexer.tokenize(query)
+        for token in tokens:
+            print(f"  {token.type}: {token.value}")

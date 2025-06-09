@@ -1,3 +1,5 @@
 notes.py
 .cache
 classes.py
+
+__pycache__
