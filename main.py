@@ -1,8 +1,6 @@
 from database.nyx import NixORM
 
 def exemplo_uso_completo():
-    """Demonstra todos os usos possíveis"""
-    
     print("=== NIXORM STRING ONLY [PARSER] ===\n")
     
     # Criar ORM
@@ -14,6 +12,9 @@ def exemplo_uso_completo():
     
     # Testes com strings
     test_queries = [
+        "createDatabase('eCom')",
+        "createTable('users').column('id', 'INTEGER', 'primarykey').column('name', 'VARCHAR', '100')",
+        "insert('users').values('name', 'John', 'age', '25')"
         "get('users', 'id', 'name', 'age')",
         "getAll('users')",
         "get('users').where('id', '=', '10')",
@@ -31,7 +32,7 @@ def exemplo_uso_completo():
     
     print("2. USING INTERFACE FLUENTE:")
     
-    # Interface fluente
+    #Com Interface
     queries = [
         db.get('users', 'id', 'name', 'age'),
         db.getAll('users'),

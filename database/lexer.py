@@ -1,4 +1,4 @@
-from ply import lex
+from database.ply import lex
 import sys
 
 class NixLexer:
@@ -134,9 +134,10 @@ class NixLexer:
         return tokens
 
 
-# Testando lexer
-
 if __name__ == "__main__":
+    """
+    Testando a geração dos Tokens DSL
+    """
     test_queries = [
         "createDatabase('mydb')",
         "createTable('users').column('id', 'int', primaryKey).column('name', 'varchar', '255')",

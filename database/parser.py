@@ -1,8 +1,8 @@
-from lexer import NixLexer
+from database.lexer import NixLexer
 import sys
 
-# Criando parser com base nos conteúdos de aula, pois fornece um melhor controle sobre o parseamento das classes
-# Como ele trabalha a apartir dos tokens definidos a MV vai gerar um sql equivalente para devolver a api que está sendo utilizada.
+# Parser com base nos conteúdos de aula, pois fornece um melhor controle sobre o parseamento das classes
+# Como ele trabalha a apartir dos tokens definidos a MV vai gerar um sql equivalente 
 
 class Node:
     def toDict(self):
@@ -40,6 +40,15 @@ class createTableNode(Node):
     def __repr__(self) -> str:
         return f'<CreateTableNode: table={self.table_name} columns={self.columns}>'
         
+
+class CreateDatabaseNode(Node):
+    def __init__(self, database_name):
+        self.type = "CREATE DATABASE"
+        self.database_name = database_name
+    
+    def __repr__(self) -> str:
+        return f'<CreateDatabaseNode: {self.database_name}>'
+
 
 class insertNode(Node):
     def __init__(self, table_name):
@@ -79,17 +88,28 @@ class NixParser:
         sys.exit(1)
     
     def parse_expression(self):
-        if self.lookAhead.type == 'GETALL':
-            return self.parse_getAll()
-        elif self.lookAhead.type == 'GET':
-            return self.parse_get() 
-        
+        if self.lookAhead.type == "CREATEDATABASE":
+            return self.parse_create_database()
         elif self.lookAhead.type == 'CREATETABLE':
             return self.parse_create_table()
         elif self.lookAhead.type == 'INSERT':
             return self.parse_insert()
+        elif self.lookAhead.type == 'GETALL':
+            return self.parse_getAll()
+        elif self.lookAhead.type == 'GET':
+            return self.parse_get() 
         else:
             raise SyntaxError("Unknown expression")
+    
+    def parse_create_database(self):
+        self.match("CREATEDATABASE")
+        self.match("LPAREN")
+        database_name = self.match("STRING").value
+        self.match("RPAREN")
+        
+        node = CreateDatabaseNode(database_name)
+        self.symbols.append(node)
+        return node
     
     def parse_getAll(self):
         self.match("GETALL")
@@ -180,7 +200,6 @@ class NixParser:
         
         node = insertNode(table_name)
         
-        # Parse .values() chain
         if self.lookAhead and self.lookAhead.type == "DOT":
             self.match("DOT")
             if self.lookAhead.type == "VALUES":
@@ -193,7 +212,6 @@ class NixParser:
         self.match("VALUES")
         self.match("LPAREN")
         
-        # Parse key-value pairs
         while True:
             column = self.match("STRING").value
             self.match("COMMA")
@@ -236,9 +254,9 @@ class NixParser:
         return {"ID": left, "EQUALS": op, "NUMBER": right}
 
 
-#newparseData = "get('users', 'id', 'name', 'age', where('id', '=', '10'))"
 
 queries = [
+    "createDatabase('users')",
     "get('users', 'name').where('age', '>', '18')",
     "insert('users').values('name', 'John Doe', 'age', '21')"
 ]
@@ -250,5 +268,5 @@ for query in queries:
     result = parser.parse(query)
     print(f"Input: {query}")
     print(f"Result: {result}")
-    print(f"Symbols: {parser.symbols}") 
-    print(f"Parser state: {vars(parser)}")
+    # print(f"Symbols: {parser.symbols}") 
+    # print(f"Parser state: {vars(parser)}")

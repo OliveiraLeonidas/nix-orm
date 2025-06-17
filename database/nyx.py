@@ -40,7 +40,7 @@ class NixORM:
         self.semantic_analyzer.schema[table] = columns
         return self
     
-    # ==================== INTERFACE STRING (PARSER) ====================
+    # ==================== INTERFACE STRING  ====================
     
     def query(self, query_string: str):
         """
@@ -82,7 +82,7 @@ class NixORM:
         
         return self.sql_executor.execute(ast_node, return_sql_only=True) # type: ignore
     
-    # ==================== INTERFACE FLUENTE ====================
+    # ==================== INTERFACE ====================
     
     def get(self, table: str, *columns):
         """Interface fluente para GET"""
@@ -91,6 +91,9 @@ class NixORM:
     def getAll(self, table: str):
         """Interface fluente para GETALL"""
         return NixQuery(self, 'GETALL', table, ['*'])
+    
+    def insert(self, table_name, col, values):
+        return 
 
 
 db = NixORM()

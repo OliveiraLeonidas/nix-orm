@@ -1,21 +1,24 @@
 from typing import Dict, List
-from parser import NixParser, SelectNode, insertNode
+from database.parser import CreateDatabaseNode, NixParser, SelectNode, insertNode, createTableNode
 
 class SemanticAnalyzer:
-    """Analisador semântico que valida a árvore sintática"""
+    """Analisador semântico que valida a árvore sintática e gera schema automaticamente"""
     
-    def __init__(self, schema: Dict[str, List[str]] = None): # type: ignore
+    def __init__(self, schema: Dict[str, List[str]] = None):
         self.schema = schema or {}
         self.errors = []
         self.warnings = []
     
-    def analyze(self, node: SelectNode) -> bool:
-        """Analisa um SelectNode"""
+    def analyze(self, node) -> bool:
+        """Analisa qualquer tipo de node e atualiza o schema automaticamente"""
         self.errors = []
         self.warnings = []
         
-        
-        if isinstance(node, insertNode):
+        if isinstance(node, CreateDatabaseNode):
+            self._analyze_create_database(node)
+        elif isinstance(node, createTableNode):
+            self._analyze_create_table(node)
+        elif isinstance(node, insertNode):
             self._analyze_insert_node(node)
         elif isinstance(node, SelectNode):
             self._analyze_select_node(node)
@@ -24,8 +27,29 @@ class SemanticAnalyzer:
         
         return len(self.errors) == 0
     
-    def _analyze_insert_node(self, node):
+    def _analyze_create_database(self, node):
+        if not node.database_name:
+            self.errors.append("Nome do banco de dados não pode estar vazio")
+            return
         
+        # Atualiza o schema com o nome do banco
+        self.schema["_database_name"] = node.database_name
+    
+    def _analyze_create_table(self, node):
+        """Analisa CREATE TABLE e adiciona ao schema"""
+        if not node.table_name:
+            self.errors.append("Nome da tabela não pode estar vazio")
+            return
+        
+        if not node.columns:
+            self.errors.append("Tabela deve ter pelo menos uma coluna")
+            return
+        
+        # Gera o schema da tabela automaticamente
+        column_names = [col['name'] for col in node.columns]
+        self.schema[node.table_name] = column_names
+    
+    def _analyze_insert_node(self, node):
         if not node.table_name:
             self.errors.append("Nome da tabela não pode estar vazio")
             return
@@ -34,22 +58,27 @@ class SemanticAnalyzer:
             self.errors.append("Insert deve ter pelo menos um valor")
             return
         
-        if self.schema and node.table_name not in self.schema:
-            self.errors.append(f"Tabela '{node.table_name}' não encontrada")
-            return
-        
-        if self.schema and node.table_name in self.schema:
+        # Se a tabela não existe no schema, cria automaticamente baseado nos valores
+        if node.table_name not in self.schema:
+            self.warnings.append(f"Tabela '{node.table_name}' não encontrada no schema, criando automaticamente")
+            self.schema[node.table_name] = list(node.values.keys())
+        else:
+            # Valida colunas existentes
             available_columns = self.schema[node.table_name]
             for col in node.values.keys():
                 if col not in available_columns:
-                    self.errors.append(f'Coluna \'{col}\' não encontrada na tabela \'{node.table_name}\'')
+                    self.errors.append(f"Coluna '{col}' não encontrada na tabela '{node.table_name}'")
     
     def _analyze_select_node(self, node: SelectNode):
-        """Node SELECT => COMANDO"""
-        
-        if self.schema and node.table not in self.schema:
-            self.errors.append(f"Tabela '{node.table}' não encontrada no schema")
-            return
+        """Analisa SELECT"""
+        # Se a tabela não existe no schema, cria com colunas genéricas
+        if node.table not in self.schema:
+            self.warnings.append(f"Tabela '{node.table}' não encontrada no schema, assumindo estrutura básica")
+            # Cria schema básico baseado nas colunas solicitadas
+            if node.columns != ['*']:
+                self.schema[node.table] = node.columns
+            else:
+                self.schema[node.table] = ['id']  # Coluna padrão
         
         if node.columns != ['*'] and self.schema:
             available_columns = self.schema.get(node.table, [])
@@ -74,7 +103,7 @@ class SemanticAnalyzer:
         operator = condition.get('EQUALS')
         value = condition.get('NUMBER')
         
-        if not all([column, operator, value]):
+        if not all([column is not None, operator, value is not None]):
             self.errors.append("Condição WHERE incompleta")
             return
         
@@ -91,25 +120,23 @@ class SemanticAnalyzer:
     
     def get_warnings(self) -> List[str]:
         return self.warnings
+    
+    def get_schema(self) -> Dict[str, List[str]]:
+        """Retorna o schema atual"""
+        return self.schema
 
 
 # Teste do analisador semântico
 if __name__ == "__main__":
-    # Schema de exemplo
-    schema = {
-        'users': ['id', 'name', 'age', 'email']
-    }
-    
-    # Criar parser e analisador
     parser = NixParser()
-    analyzer = SemanticAnalyzer(schema)
+    analyzer = SemanticAnalyzer()  # Schema vazio inicialmente
     
-    # Testar diferentes consultas
     test_queries = [
-        "get('users', 'name').where('age', '>', '18')",  # Válida
-        "get('invalid_table', 'name')",                   # Tabela inválida
-        "get('users', 'invalid_column')",                 # Coluna inválida
-        "get('users', 'name').where('invalid_col', '=', '1')",  # Coluna WHERE inválida
+        "createDatabase('eCom')",
+        "createTable('users').column('id', 'INTEGER', 'primarykey').column('name', 'VARCHAR', '100').column('age', 'INTEGER')",
+        "get('users', 'name').where('age', '>', '18')",
+        "getAll('users')",
+        "insert('users').values('name', 'John', 'age', '25')"
     ]
     
     for query in test_queries:
@@ -126,6 +153,8 @@ if __name__ == "__main__":
             
             if analyzer.get_warnings():
                 print(f"Avisos: {analyzer.get_warnings()}")
+            
+            print(f"Schema atual: {analyzer.get_schema()}")
                 
         except Exception as e:
             print(f"Erro no parsing: {e}")

@@ -35,7 +35,7 @@ class NixQuery:
         return self.orm.sql(query_string)
     
     def _build_query_string(self) -> str:
-        """Constrói string compatível com seu parser"""
+        """Constrói string compatível"""
         
         if self.operation == 'GETALL':
             query = f"getAll('{self.table}')"
