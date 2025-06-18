@@ -56,3 +56,9 @@
 ```shell
     $ docker compose down
 ```
+
+
+### Arquivos
+
+Caso seja necessário rodar os arquivos separadamente, remover o  "database." não identifiquei o motivo, mas quando rodei com o caminho completo, ele não tinha
+funcionado.

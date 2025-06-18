@@ -24,7 +24,7 @@ class SQLExecutor:
         if return_sql_only:
             return sql
         else:
-            # Aqui executaria no banco se tivesse conexão
+            # Aqui executaria no banco se tivesse conexão teoricamente, mas não consegui integrar com o sql alchemy
             return self._execute_sql(sql) if self.db_connection else sql
     
     def _generate_create_database_sql(self, node: CreateDatabaseNode) -> str:
@@ -45,11 +45,10 @@ class SQLExecutor:
         for col in node.columns:
             col_sql = f"`{col['name']}` {col['type']}"
             
-            # Adiciona tamanho se especificado
             if 'size' in col:
                 col_sql += f"({col['size']})"
             
-            # Adiciona constraints
+            # Adiciona restrições nas colunas da tabela
             if 'constraints' in col:
                 for constraint in col['constraints']:
                     if constraint == 'primarykey':
@@ -105,7 +104,7 @@ class SQLExecutor:
         operator = condition.get('EQUALS')
         value = condition.get('NUMBER')
         
-        # Formatar valor
+        # Verifica o valor e tipa dependendo de como ele foi informado
         try:
             if isinstance(value, str) and value.isdigit():
                 formatted_value = value
@@ -125,7 +124,6 @@ class SQLExecutor:
             cursor.execute(sql)
             results = cursor.fetchall()
             
-            # Converter para dicionários
             column_names = [desc[0] for desc in cursor.description]
             return [dict(zip(column_names, row)) for row in results]
             

@@ -1,4 +1,5 @@
 from database.nyx import NixORM
+import sqlite3
 
 def exemplo_uso_completo():
     print("=== NIXORM STRING ONLY [PARSER] ===\n")
@@ -10,11 +11,11 @@ def exemplo_uso_completo():
     
     print("TESTANDO STRINGS:")
     
-    # Testes com strings
+    # Testando com strings
     test_queries = [
         "createDatabase('eCom')",
-        "createTable('users').column('id', 'INTEGER', 'primarykey').column('name', 'VARCHAR', '100')",
-        "insert('users').values('name', 'John', 'age', '25')"
+        "createTable('users').column('id', 'INTEGER', 'primarykey').column('name', 'VARCHAR', '100').column('age', 'INTEGER')",
+        "insert('users').values('name', 'John', 'age', '25')",
         "get('users', 'id', 'name', 'age')",
         "getAll('users')",
         "get('users').where('id', '=', '10')",
@@ -32,9 +33,9 @@ def exemplo_uso_completo():
     
     print("2. USING INTERFACE FLUENTE:")
     
-    #Com Interface
+    #Testando com Interface
     queries = [
-        db.get('users', 'id', 'name', 'age'),
+        db.get('users', 'id', 'name'),
         db.getAll('users'),
         db.get('users').where('id', '=', '10'),
         db.get('users', 'name').where('age', '>', '18').limit(5)
@@ -51,8 +52,8 @@ def exemplo_uso_completo():
 def exemplo_com_banco():
     """Exemplo com banco SQLite real"""
     
-    # Criar banco
-    conn = sqlite3.connect(':memory:')
+    # criando bd com sqlite manualmente
+    conn = sqlite3.connect('test.db')
     conn.execute('''
         CREATE TABLE users (
             id INTEGER PRIMARY KEY,
@@ -68,13 +69,13 @@ def exemplo_com_banco():
     conn.execute("INSERT INTO users (name, email, age) VALUES ('Pedro', 'pedro@email.com', 22)")
     conn.commit()
     
-    # ORM com conexão
+    # Simulando conexão com ORM
     db = NixORM(conn)
     db.add_table_schema('users', ['id', 'name', 'email', 'age'])
     
     print("\n=== EXEMPLO COM BANCO REAL ===\n")
     
-    # Executar queries usando strings
+    # Executar queries strings 
     print("1. Todos os usuários:")
     results = db.query("getAll('users')")
     for user in results:

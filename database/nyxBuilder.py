@@ -1,59 +1,80 @@
-from typing import List, TYPE_CHECKING
-
-
-if TYPE_CHECKING:
-    from database.nyx import NixORM 
-
+from typing import List, Any, Union
+from database.parser import SelectNode, insertNode
 
 class NixQuery:
-    """Query builder que gera strings compatíveis com seu parser"""
+    """Interface fluente para construir queries"""
     
-    def __init__(self, orm: 'NixORM', operation: str, table: str, columns: List[str]):
-        self.orm = orm
-        self.operation = operation
+    def __init__(self, orm_instance, query_type: str, table: str, columns: List[str]):
+        self.orm = orm_instance
+        self.query_type = query_type
         self.table = table
         self.columns = columns
-        self._where_condition = None
+        self._where_conditions = []
         self._limit_value = None
+        self._values = {}
     
-    def where(self, column: str, operator: str, value: str):
-        self._where_condition = (column, operator, value)
+    def where(self, column: str, operator: str, value: Any):
+        """Adiciona condição WHERE"""
+        self._where_conditions.append({
+            'ID': column,
+            'EQUALS': operator, 
+            'NUMBER': value
+        })
         return self
     
-    def limit(self, limit_value: int):
-        self._limit_value = limit_value
+    def limit(self, count: int):
+        """Adiciona LIMIT"""
+        self._limit_value = count
+        return self
+    
+    def values(self, **kwargs):
+        """Adiciona valores para INSERT (interface fluente)"""
+        self._values.update(kwargs)
         return self
     
     def execute(self):
-        """Executa a query"""
-        query_string = self._build_query_string()
-        return self.orm.query(query_string)
+        """Executa a query construída"""
+        node = self._build_node()
+        
+        # Análise semântica
+        if not self.orm.semantic_analyzer.analyze(node):
+            errors = self.orm.semantic_analyzer.get_errors()
+            raise ValueError(f"Erros semânticos: {'; '.join(errors)}")
+        
+        # Executar
+        return self.orm.sql_executor.execute(node, return_sql_only=False)
     
     def sql(self) -> str:
-        """Retorna SQL"""
-        query_string = self._build_query_string()
-        return self.orm.sql(query_string)
+        """Retorna apenas o SQL da query construída"""
+        node = self._build_node()
+        
+        if not self.orm.semantic_analyzer.analyze(node):
+            errors = self.orm.semantic_analyzer.get_errors()
+            raise ValueError(f"Erros semânticos: {'; '.join(errors)}")
+        
+        return self.orm.sql_executor.execute(node, return_sql_only=True)
     
-    def _build_query_string(self) -> str:
-        """Constrói string compatível"""
+    def _build_node(self):
+        """Constrói o node AST apropriado"""
+        if self.query_type in ['GET', 'GETALL']:
+            node = SelectNode(self.table, self.columns)
+            
+            # Adiciona WHERE se existir
+            if self._where_conditions:
+                # Por simplicidade, usa apenas a primeira condição
+                node.set_where(self._where_conditions[0])
+            
+            # Adiciona LIMIT se existir
+            if self._limit_value:
+                node.set_limit(self._limit_value)
+            
+            return node
         
-        if self.operation == 'GETALL':
-            query = f"getAll('{self.table}')"
-        else: 
-            if self.columns == ['*']:
-                query = f"get('{self.table}')"
-            else:
-                columns_str = "', '".join(self.columns)
-                query = f"get('{self.table}', '{columns_str}')"
+        elif self.query_type == 'INSERT':
+            node = insertNode(self.table)
+            for col, val in self._values.items():
+                node.add_value(col, val)
+            return node
         
-        if self._where_condition:
-            col, op, val = self._where_condition
-            query += f".where('{col}', '{op}', '{val}')"
-        
-        if self._limit_value:
-            query += f".limit('{self._limit_value}')"
-        
-        return query
-    
-    def __repr__(self):
-        return f"<NixQuery: {self._build_query_string()}>"
+        else:
+            raise ValueError(f"Tipo de query não suportado: {self.query_type}")
