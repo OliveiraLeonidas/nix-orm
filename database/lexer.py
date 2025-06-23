@@ -134,21 +134,18 @@ class NixLexer:
         return tokens
 
 
-if __name__ == "__main__":
-    """
-    Testando a geração dos Tokens DSL
-    """
-    test_queries = [
-        "createDatabase('mydb')",
-        "createTable('users').column('id', 'int', primaryKey).column('name', 'varchar', '255')",
-        "insert('users').values('name', 'João', 'age', '25')",
-        "update('users').set('name', 'Maria').where('id', '=', '1')",
-        "delete('users').where('id', '=', '1')"
-    ]
-    
-    for query in test_queries:
-        print(f"\nTesting: {query}")
-        lexer = NixLexer(query)
-        tokens = lexer.tokenize(query)
-        for token in tokens:
-            print(f"  {token.type}: {token.value}")
+""" Testando a geração dos Tokens DSL """
+test_queries = [
+    "createDatabase('mydb')",
+    "createTable('users').column('id', 'int', primaryKey).column('name', 'varchar', '255')",
+    "insert('users').values('name', 'João', 'age', '25')",
+    "update('users').set('name', 'Maria').where('id', '=', '1')",
+    "delete('users').where('id', '=', '1')"
+]
+
+for query in test_queries:
+    print(f"\nTesting: {query}")
+    lexer = NixLexer(query)
+    tokens = lexer.tokenize(query)
+    for token in tokens:
+        print(f"  {token.type}: {token.value}")

@@ -62,3 +62,13 @@
 
 Caso seja necessário rodar os arquivos separadamente, remover o  "database." não identifiquei o motivo, mas quando rodei com o caminho completo, ele não tinha
 funcionado.
+
+
+### Estrutura
+
+- lexer.py
+- parser.py
+- semanticAnalyzer.py
+- compiler.py
+- nyxBuilder.py
+- nyx.py

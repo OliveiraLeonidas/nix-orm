@@ -2,7 +2,6 @@
 
 SHELL := /bin/bash
 
-# Variáveis
 PYTHON = python3
 PIP = pip
 MODULE = main.py
@@ -13,13 +12,10 @@ VENV = .venv
 export PYTHONPYCACHEPREFIX = $(CACHE_DIR)/pycache
 export PIP_CACHE_DIR = $(CACHE_DIR)/pip
 
-# Configuração do ambiente
 setup:
 	$(PIP) install -r requirements.txt && \
 	echo "Dependencias instaladas!"
 
-
-# Execução do programa
 run:
 	$(PYTHON) $(MODULE)
 	echo "Execução finalizada"
@@ -27,11 +23,9 @@ run:
 ptest:
 	$(PYTHON) classes.py 
 
-# Execução dos testes
 test:
 	pytest $(TEST_DIR)
 
-# Limpeza de arquivos temporários
 clean:
 	rm -rf __pycache__
 	rm -rf *.pyc
@@ -42,12 +36,10 @@ clean:
 	rm -rf $(CACHE_DIR)
 	docker compose down
 
-# Verificação de estilo
 lint:
 	flake8 $(MODULE) $(TEST_DIR)
 	pylint $(MODULE) $(TEST_DIR)
 
-# Formatação automática
 format:
 	black $(MODULE) $(TEST_DIR)
 	isort $(MODULE) $(TEST_DIR)

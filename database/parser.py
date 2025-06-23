@@ -126,7 +126,6 @@ class NixParser:
         table = self.match("STRING").value
         columns = []
         
-        # Parse colunas se houver
         if self.lookAhead.type == "COMMA":
             self.match("COMMA")
             while self.lookAhead.type == "STRING":
@@ -149,7 +148,6 @@ class NixParser:
         
         node = createTableNode(table_name)
         
-        # Parse column definitions chained
         while self.lookAhead and self.lookAhead.type == "DOT":
             self.match("DOT")
             if self.lookAhead.type == "COLUMN":
@@ -268,5 +266,3 @@ for query in queries:
     result = parser.parse(query)
     print(f"Input: {query}")
     print(f"Result: {result}")
-    # print(f"Symbols: {parser.symbols}") 
-    # print(f"Parser state: {vars(parser)}")

@@ -2,8 +2,6 @@ from typing import List, Any, Union
 from database.parser import SelectNode, insertNode
 
 class NixQuery:
-    """Interface fluente para construir queries"""
-    
     def __init__(self, orm_instance, query_type: str, table: str, columns: List[str]):
         self.orm = orm_instance
         self.query_type = query_type
@@ -14,7 +12,6 @@ class NixQuery:
         self._values = {}
     
     def where(self, column: str, operator: str, value: Any):
-        """Adiciona condição WHERE"""
         self._where_conditions.append({
             'ID': column,
             'EQUALS': operator, 
@@ -28,43 +25,35 @@ class NixQuery:
         return self
     
     def values(self, **kwargs):
-        """Adiciona valores para INSERT (interface fluente)"""
         self._values.update(kwargs)
         return self
     
     def execute(self):
-        """Executa a query construída"""
         node = self._build_node()
         
-        # Análise semântica
         if not self.orm.semantic_analyzer.analyze(node):
             errors = self.orm.semantic_analyzer.get_errors()
-            raise ValueError(f"Erros semânticos: {'; '.join(errors)}")
+            raise ValueError(f"Semantic errors: {'; '.join(errors)}")
         
         # Executar
         return self.orm.sql_executor.execute(node, return_sql_only=False)
     
     def sql(self) -> str:
-        """Retorna apenas o SQL da query construída"""
         node = self._build_node()
         
         if not self.orm.semantic_analyzer.analyze(node):
             errors = self.orm.semantic_analyzer.get_errors()
-            raise ValueError(f"Erros semânticos: {'; '.join(errors)}")
+            raise ValueError(f"Semantic errors: {'; '.join(errors)}")
         
         return self.orm.sql_executor.execute(node, return_sql_only=True)
     
     def _build_node(self):
-        """Constrói o node AST apropriado"""
         if self.query_type in ['GET', 'GETALL']:
             node = SelectNode(self.table, self.columns)
             
-            # Adiciona WHERE se existir
             if self._where_conditions:
-                # Por simplicidade, usa apenas a primeira condição
                 node.set_where(self._where_conditions[0])
             
-            # Adiciona LIMIT se existir
             if self._limit_value:
                 node.set_limit(self._limit_value)
             
@@ -77,4 +66,4 @@ class NixQuery:
             return node
         
         else:
-            raise ValueError(f"Tipo de query não suportado: {self.query_type}")
+            raise ValueError(f"Type Node not supported:  {self.query_type}")

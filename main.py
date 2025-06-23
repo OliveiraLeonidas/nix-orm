@@ -1,17 +1,15 @@
 from database.nyx import NixORM
 import sqlite3
 
-def exemplo_uso_completo():
-    print("=== NIXORM STRING ONLY [PARSER] ===\n")
+def testOrm():
+    print("=== 1. NIXORM STRING ONLY ===\n")
     
-    # Criar ORM
     db = NixORM()
     db.add_table_schema('users', ['id', 'name', 'email', 'age'])
     db.set_debug(True)
     
     print("TESTANDO STRINGS:")
     
-    # Testando com strings
     test_queries = [
         "createDatabase('eCom')",
         "createTable('users').column('id', 'INTEGER', 'primarykey').column('name', 'VARCHAR', '100').column('age', 'INTEGER')",
@@ -31,9 +29,8 @@ def exemplo_uso_completo():
         except Exception as e:
             print(f"   Erro: {e}\n")
     
-    print("2. USING INTERFACE FLUENTE:")
+    print("=== 2. USING INTERFACE ===")
     
-    #Testando com Interface
     queries = [
         db.get('users', 'id', 'name'),
         db.getAll('users'),
@@ -49,10 +46,8 @@ def exemplo_uso_completo():
         except Exception as e:
             print(f"   Erro: {e}\n")
 
-def exemplo_com_banco():
-    """Exemplo com banco SQLite real"""
+def testOrmWithDb():
     
-    # criando bd com sqlite manualmente
     conn = sqlite3.connect('test.db')
     conn.execute('''
         CREATE TABLE users (
@@ -63,19 +58,16 @@ def exemplo_com_banco():
         )
     ''')
     
-    # Dados de teste
     conn.execute("INSERT INTO users (name, email, age) VALUES ('João', 'joao@email.com', 25)")
     conn.execute("INSERT INTO users (name, email, age) VALUES ('Maria', 'maria@email.com', 30)")
     conn.execute("INSERT INTO users (name, email, age) VALUES ('Pedro', 'pedro@email.com', 22)")
     conn.commit()
     
-    # Simulando conexão com ORM
     db = NixORM(conn)
     db.add_table_schema('users', ['id', 'name', 'email', 'age'])
     
     print("\n=== EXEMPLO COM BANCO REAL ===\n")
     
-    # Executar queries strings 
     print("1. Todos os usuários:")
     results = db.query("getAll('users')")
     for user in results:
@@ -94,9 +86,5 @@ def exemplo_com_banco():
     conn.close()
 
 if __name__ == "__main__":
-    exemplo_uso_completo()
-    #exemplo_com_banco()
-
-    # db = NixORM()
-    # result = db.query("get('users', 'id', 'name', 'age')")
-    # result = db.query("getAll('users').where('id', '=', '10')")
+    testOrm()
+    #testOrmWithDb()
