@@ -261,7 +261,7 @@ queries = [
 
 parser = NixParser()
 
-print("Testing Queries [PARSER]")
+print("Teste[PARSER]")
 for query in queries:
     result = parser.parse(query)
     print(f"Input: {query}")

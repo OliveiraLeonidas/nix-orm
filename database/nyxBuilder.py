@@ -20,7 +20,6 @@ class NixQuery:
         return self
     
     def limit(self, count: int):
-        """Adiciona LIMIT"""
         self._limit_value = count
         return self
     

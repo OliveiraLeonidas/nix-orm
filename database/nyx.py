@@ -126,7 +126,6 @@ class TableBuilder:
         return self
     
     def primaryKey(self, column_name: str, data_type: str = 'INTEGER'):
-        """Adiciona coluna primary key"""
         return self.column(column_name, data_type, 'primarykey', 'autoincrement')
     
     def execute(self):

@@ -133,8 +133,7 @@ class NixLexer:
             tokens.append(tk)
         return tokens
 
-
-""" Testando a geração dos Tokens DSL """
+print(""" Testando a geração dos Tokens DSL """)
 test_queries = [
     "createDatabase('mydb')",
     "createTable('users').column('id', 'int', primaryKey).column('name', 'varchar', '255')",
@@ -144,7 +143,7 @@ test_queries = [
 ]
 
 for query in test_queries:
-    print(f"\nTesting: {query}")
+    print(f"\nTeste: {query}")
     lexer = NixLexer(query)
     tokens = lexer.tokenize(query)
     for token in tokens:
